@@ -1,0 +1,15 @@
+name: SimpleShop
+main: aiptu\simpleshop\SimpleShop
+version: 1.0.0
+api: [5.30.0]
+author: AIPTU
+permissions:
+  simpleshop.category:
+    description: Allows usage of all SimpleShop categories.
+    default: op
+  simpleshop.command.shop.access:
+    description: Allows players to use command shop.
+    default: true
+  simpleshop.command.shop.admin:
+    description: Allows players to use command shop admin.
+    default: op
