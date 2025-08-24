@@ -18,7 +18,7 @@ use aiptu\simpleshop\utils\ImageType;
 /**
  * @no-named-arguments
  */
-abstract class AbstractCategory {
+abstract readonly class AbstractCategory {
 	public function __construct(
 		protected string $id,
 		protected string $name,

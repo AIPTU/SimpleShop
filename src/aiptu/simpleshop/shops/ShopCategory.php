@@ -52,9 +52,10 @@ class ShopCategory extends AbstractCategory {
 			$imageSrc = PropertyValidator::getOptionalString('image_source', $data) ?? '';
 			$imageType = ImageType::PATH;
 			if (isset($data['image_type'])) {
-				$parsedImageType = ImageType::tryFrom(PropertyValidator::getRequiredString('image_type', $data));
+				$imageTypeString = PropertyValidator::getRequiredString('image_type', $data);
+				$parsedImageType = ImageType::tryFrom($imageTypeString);
 				if ($parsedImageType === null) {
-					throw new RuntimeException('Invalid image type. Supported types are: ' . implode(', ', ImageType::values()));
+					throw new RuntimeException("Invalid image type '{$imageTypeString}'. Supported types are: " . implode(', ', ImageType::values()));
 				}
 
 				$imageType = $parsedImageType;

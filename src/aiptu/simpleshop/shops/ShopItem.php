@@ -33,7 +33,7 @@ readonly class ShopItem {
 		private bool $canBuy = true,
 		private bool $canSell = true,
 		private string $imageSrc = '',
-		private ImageType $imageType = ImageType::PATH,
+		private ImageType $imageType = ImageType::PATH
 	) {}
 
 	public function getId() : string {
@@ -77,7 +77,7 @@ readonly class ShopItem {
 	 */
 	public static function fromArray(string $id, array $data) : self {
 		try {
-			PropertyValidator::validateKeys($data, 'nbt', 'buy', 'sell');
+			PropertyValidator::validateKeys($data, 'nbt', 'buy', 'sell', 'can_buy', 'can_sell');
 
 			$nbt = PropertyValidator::getRequiredString('nbt', $data);
 			$item = ItemSerializer::safeDeserializeItem($nbt);
@@ -93,10 +93,13 @@ readonly class ShopItem {
 			$imageSrc = PropertyValidator::getOptionalString('image_source', $data) ?? '';
 			$imageType = ImageType::PATH;
 			if (isset($data['image_type'])) {
-				$parsedImageType = ImageType::tryFrom(PropertyValidator::getRequiredString('image_type', $data));
+				$imageTypeString = PropertyValidator::getRequiredString('image_type', $data);
+				$parsedImageType = ImageType::tryFrom($imageTypeString);
 				if ($parsedImageType === null) {
-					throw new RuntimeException('Invalid image type. Supported types are: ' . implode(', ', ImageType::values()));
+					throw new RuntimeException("Invalid image type '{$imageTypeString}'. Supported types are: " . implode(', ', ImageType::values()));
 				}
+
+				$imageType = $parsedImageType;
 			}
 		} catch (InvalidArgumentException $e) {
 			throw new RuntimeException("Invalid data for item '{$id}': {$e->getMessage()}", 0, $e);
