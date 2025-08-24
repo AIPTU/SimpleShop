@@ -24,8 +24,8 @@ abstract class AbstractCategory {
 		protected string $name,
 		protected string $description,
 		protected int $priority,
-		protected string $imageSrc = '',
-		protected ImageType $imageType = ImageType::PATH,
+		protected string $imageSrc,
+		protected ImageType $imageType,
 		protected string $permission,
 		protected bool $hidden = false
 	) {}
