@@ -16,6 +16,7 @@ namespace aiptu\simpleshop;
 use aiptu\simpleshop\commands\ShopAdminCommand;
 use aiptu\simpleshop\commands\ShopCommand;
 use aiptu\simpleshop\shops\ShopManager;
+use CortexPE\Commando\PacketHooker;
 use pocketmine\plugin\DisablePluginException;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
@@ -32,6 +33,10 @@ class SimpleShop extends PluginBase {
 
 	protected function onEnable() : void {
 		self::setInstance($this);
+
+		if (!PacketHooker::isRegistered()) {
+			PacketHooker::register($this);
+		}
 
 		try {
 			$this->shopManager = new ShopManager(Path::join($this->getDataFolder(), 'shops.json'));

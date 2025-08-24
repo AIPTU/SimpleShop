@@ -18,14 +18,14 @@ use aiptu\simpleshop\utils\ImageType;
 /**
  * @no-named-arguments
  */
-abstract readonly class AbstractCategory {
+abstract class AbstractCategory {
 	public function __construct(
 		protected string $id,
 		protected string $name,
 		protected string $description,
 		protected int $priority,
-		protected string $imageSrc,
-		protected ImageType $imageType,
+		protected string $imageSrc = '',
+		protected ImageType $imageType = ImageType::PATH,
 		protected string $permission,
 		protected bool $hidden = false
 	) {}
