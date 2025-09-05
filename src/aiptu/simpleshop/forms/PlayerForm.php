@@ -31,6 +31,7 @@ use function array_merge;
 use function array_slice;
 use function count;
 use function floor;
+use function number_format;
 
 /**
  * @no-named-arguments
@@ -76,69 +77,14 @@ class PlayerForm {
 	 * It lists both sub-categories and items.
 	 */
 	public static function sendCategoryView(Player $player, ShopCategory $category, int $page = 0) : void {
-		$subCategories = $category->getSubCategories();
-		$items = $category->getItems();
-
-		$allElements = array_merge($subCategories, $items);
-		$totalElements = count($allElements);
-		$totalPages = (int) floor(($totalElements - 1) / self::ITEMS_PER_PAGE);
-
-		$offset = $page * self::ITEMS_PER_PAGE;
-		$visibleElements = array_slice($allElements, $offset, self::ITEMS_PER_PAGE);
-
-		$buttons = [];
-		foreach ($visibleElements as $element) {
-			$buttonText = '';
-			$image = null;
-
+		$elements = array_merge($category->getSubCategories(), $category->getItems());
+		self::sendPaginatedForm($player, $elements, $category->getName(), 'sub-category or an item.', $page, function (Player $player, $element) : void {
 			if ($element instanceof ShopSubCategory) {
-				$buttonText = TextFormat::BOLD . $element->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . $element->getDescription();
-				$image = ButtonImage::create($element->getImageType()->toInt(), $element->getImageSource());
+				self::sendSubCategoryView($player, $element);
 			} elseif ($element instanceof ShopItem) {
-				$buyPrice = $element->canBuy() ? TextFormat::GREEN . '$' . $element->getBuyPrice() : TextFormat::DARK_GRAY . 'N/A';
-				$sellPrice = $element->canSell() ? TextFormat::RED . '$' . $element->getSellPrice() : TextFormat::DARK_GRAY . 'N/A';
-				$buttonText = TextFormat::BOLD . $element->getItem()->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . 'Buy: ' . $buyPrice . ' | Sell: ' . $sellPrice;
-				$image = ButtonImage::create($element->getImageType()->toInt(), $element->getImageSource());
+				self::sendItemDetailsForm($player, $element);
 			}
-
-			$buttons[] = Button::create($buttonText, $image);
-		}
-
-		$navButtons = [];
-		if ($page > 0) {
-			$navButtons[] = Button::create('§l§b« Previous Page', ButtonImage::create(0, 'textures/ui/arrowLeft'))->onClick(function (Player $player) use ($category, $page) : void {
-				self::sendCategoryView($player, $category, $page - 1);
-			});
-		}
-
-		if ($page < $totalPages) {
-			$navButtons[] = Button::create('§l§bNext Page »', ButtonImage::create(0, 'textures/ui/arrowRight'))->onClick(function (Player $player) use ($category, $page) : void {
-				self::sendCategoryView($player, $category, $page + 1);
-			});
-		}
-
-		$allButtons = array_merge($navButtons, $buttons);
-
-		$player->sendForm(PocketFormHelper::menu(
-			TextFormat::GREEN . 'Category: ' . $category->getName() . ' (Page ' . ($page + 1) . '/' . ($totalPages + 1) . ')',
-			'Select a sub-category or an item.',
-			$allButtons,
-			function (SimpleFormResponse $response) use ($allElements, $page, $navButtons) : void {
-				$player = $response->getPlayer();
-				$selectedId = (int) $response->getSelected()->getId();
-				$navButtonCount = count($navButtons);
-				$elementIndex = $selectedId - $navButtonCount + ($page * self::ITEMS_PER_PAGE);
-
-				if (isset($allElements[$elementIndex])) {
-					$element = $allElements[$elementIndex];
-					if ($element instanceof ShopSubCategory) {
-						self::sendSubCategoryView($player, $element);
-					} elseif ($element instanceof ShopItem) {
-						self::sendItemDetailsForm($player, $element);
-					}
-				}
-			}
-		));
+		});
 	}
 
 	/**
@@ -146,51 +92,9 @@ class PlayerForm {
 	 */
 	public static function sendSubCategoryView(Player $player, ShopSubCategory $subCategory, int $page = 0) : void {
 		$items = $subCategory->getItems();
-		$totalItems = count($items);
-		$totalPages = (int) floor(($totalItems - 1) / self::ITEMS_PER_PAGE);
-
-		$offset = $page * self::ITEMS_PER_PAGE;
-		$visibleItems = array_slice($items, $offset, self::ITEMS_PER_PAGE);
-
-		$buttons = [];
-		foreach ($visibleItems as $item) {
-			$buyPrice = $item->canBuy() ? TextFormat::GREEN . '$' . $item->getBuyPrice() : TextFormat::DARK_GRAY . 'N/A';
-			$sellPrice = $item->canSell() ? TextFormat::RED . '$' . $item->getSellPrice() : TextFormat::DARK_GRAY . 'N/A';
-			$buttonText = TextFormat::BOLD . $item->getItem()->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . 'Buy: ' . $buyPrice . ' | Sell: ' . $sellPrice;
-			$image = ButtonImage::create($item->getImageType()->toInt(), $item->getImageSource());
-			$buttons[] = Button::create($buttonText, $image);
-		}
-
-		$navButtons = [];
-		if ($page > 0) {
-			$navButtons[] = Button::create('§l§b« Previous Page', ButtonImage::create(0, 'textures/ui/arrowLeft'))->onClick(function (Player $player) use ($subCategory, $page) : void {
-				self::sendSubCategoryView($player, $subCategory, $page - 1);
-			});
-		}
-
-		if ($page < $totalPages) {
-			$navButtons[] = Button::create('§l§bNext Page »', ButtonImage::create(0, 'textures/ui/arrowRight'))->onClick(function (Player $player) use ($subCategory, $page) : void {
-				self::sendSubCategoryView($player, $subCategory, $page + 1);
-			});
-		}
-
-		$allButtons = array_merge($navButtons, $buttons);
-
-		$player->sendForm(PocketFormHelper::menu(
-			TextFormat::GREEN . 'Sub-Category: ' . $subCategory->getName() . ' (Page ' . ($page + 1) . '/' . ($totalPages + 1) . ')',
-			'Select an item to buy or sell.',
-			$allButtons,
-			function (SimpleFormResponse $response) use ($items, $page, $navButtons) : void {
-				$player = $response->getPlayer();
-				$selectedId = (int) $response->getSelected()->getId();
-				$navButtonCount = count($navButtons);
-				$itemIndex = $selectedId - $navButtonCount + ($page * self::ITEMS_PER_PAGE);
-
-				if (isset($items[$itemIndex])) {
-					self::sendItemDetailsForm($player, $items[$itemIndex]);
-				}
-			}
-		));
+		self::sendPaginatedForm($player, $items, $subCategory->getName(), 'item to buy or sell.', $page, function (Player $player, ShopItem $item) : void {
+			self::sendItemDetailsForm($player, $item);
+		});
 	}
 
 	/**
@@ -225,12 +129,7 @@ class PlayerForm {
 			});
 		}
 
-		$player->sendForm(
-			SimpleForm::create(
-				$title,
-				$content,
-			)->mergeElements($buttons)
-		);
+		$player->sendForm(SimpleForm::create($title, $content)->mergeElements($buttons));
 	}
 
 	/**
@@ -246,9 +145,7 @@ class PlayerForm {
 			],
 			function (CustomFormResponse $response) use ($shopItem) : void {
 				$player = $response->getPlayer();
-
 				$quantity = (int) $response->getValues()[0];
-
 				self::sendBuyConfirmationForm($player, $shopItem, $quantity);
 			}
 		);
@@ -267,9 +164,7 @@ class PlayerForm {
 			],
 			function (CustomFormResponse $response) use ($shopItem) : void {
 				$player = $response->getPlayer();
-
 				$quantity = (int) $response->getValues()[0];
-
 				self::sendSellConfirmationForm($player, $shopItem, $quantity);
 			}
 		);
@@ -283,8 +178,6 @@ class PlayerForm {
 			$player->sendMessage(TextFormat::RED . 'This item cannot be bought.');
 			return;
 		}
-
-		// TODO: ECONOMY SUPPORT
 
 		$buyPrice = $shopItem->getBuyPrice();
 		$totalPrice = $buyPrice * $quantity;
@@ -317,15 +210,29 @@ class PlayerForm {
 	 */
 	private static function handleBuyTransaction(Player $player, ShopItem $shopItem, int $quantity, float $totalPrice) : void {
 		$item = $shopItem->getItem()->setCount($quantity);
+		$economyProvider = SimpleShop::getInstance()->getEconomyProvider();
 
-		if (!$player->getInventory()->canAddItem($item)) {
-			$player->sendMessage(TextFormat::RED . 'Your inventory is full. Please make space.');
-			return;
-		}
+		$economyProvider->getMoney($player, function (float $currentMoney) use ($player, $shopItem, $quantity, $totalPrice, $item, $economyProvider) : void {
+			if ($currentMoney < $totalPrice) {
+				$difference = $totalPrice - $currentMoney;
+				$player->sendMessage(TextFormat::RED . 'You don\'t have enough money to buy this item. You need $' . number_format($totalPrice) . ' but you only have $' . number_format($currentMoney) . '. You are short $' . number_format($difference) . '.');
+				return;
+			}
 
-		$player->getInventory()->addItem($item);
-		// TODO: ECONOMY SUPPORT
-		$player->sendMessage(TextFormat::GREEN . 'You successfully bought ' . $quantity . 'x ' . $shopItem->getItem()->getName() . ' for $' . $totalPrice . '.');
+			if (!$player->getInventory()->canAddItem($item)) {
+				$player->sendMessage(TextFormat::RED . 'Your inventory is full! You need at least one empty slot to buy this item.');
+				return;
+			}
+
+			$economyProvider->takeMoney($player, $totalPrice, function (bool $success) use ($item, $quantity, $player, $totalPrice, $shopItem, $economyProvider) : void {
+				if ($success) {
+					$player->getInventory()->addItem($item);
+					$player->sendMessage(TextFormat::GREEN . 'Purchase successful! You have bought ' . $quantity . 'x ' . $shopItem->getItem()->getName() . ' for ' . $economyProvider->getMonetaryUnit() . number_format($totalPrice));
+				} else {
+					$player->sendMessage(TextFormat::RED . 'An unexpected error occurred during the transaction. Your money has not been deducted.');
+				}
+			});
+		});
 	}
 
 	/**
@@ -336,8 +243,6 @@ class PlayerForm {
 			$player->sendMessage(TextFormat::RED . 'This item cannot be sold.');
 			return;
 		}
-
-		// TODO: ECONOMY SUPPORT
 
 		$sellPrice = $shopItem->getSellPrice();
 		$totalPrice = $sellPrice * $quantity;
@@ -370,14 +275,99 @@ class PlayerForm {
 	 */
 	private static function handleSellTransaction(Player $player, ShopItem $shopItem, int $quantity, float $totalPrice) : void {
 		$item = $shopItem->getItem()->setCount($quantity);
+		$inventory = $player->getInventory();
 
-		if (!$player->getInventory()->contains($item)) {
-			$player->sendMessage(TextFormat::RED . 'You do not have ' . $quantity . 'x ' . $shopItem->getItem()->getName() . ' to sell.');
+		$heldItems = $inventory->all($shopItem->getItem());
+		$heldCount = 0;
+		foreach ($heldItems as $heldItem) {
+			$heldCount += $heldItem->getCount();
+		}
+
+		if ($heldCount < $quantity) {
+			$player->sendMessage(TextFormat::RED . 'You don\'t have enough of this item to sell. You need ' . $quantity . 'x ' . $shopItem->getItem()->getName() . ' but you only have ' . $heldCount . '.');
 			return;
 		}
 
-		$player->getInventory()->removeItem($item);
-		// TODO: ECONOMY SUPPORT
-		$player->sendMessage(TextFormat::GREEN . 'You successfully sold ' . $quantity . 'x ' . $shopItem->getItem()->getName() . ' for $' . $totalPrice . '.');
+		$economyProvider = SimpleShop::getInstance()->getEconomyProvider();
+
+		$inventory->removeItem($item);
+
+		$economyProvider->giveMoney($player, $totalPrice, function (bool $success) use ($item, $quantity, $player, $totalPrice, $shopItem, $economyProvider) : void {
+			if ($success) {
+				$player->sendMessage(TextFormat::GREEN . 'Sale successful! You have sold ' . $quantity . 'x ' . $shopItem->getItem()->getName() . ' for ' . $economyProvider->getMonetaryUnit() . number_format($totalPrice));
+			} else {
+				$player->getInventory()->addItem($item);
+				$player->sendMessage(TextFormat::RED . 'An unexpected error occurred during the transaction. Your items have been returned.');
+			}
+		});
+	}
+
+	/**
+	 * Creates a button for a shop element (category, sub-category, or item).
+	 *
+	 * @param mixed $element
+	 */
+	private static function createShopElementButton($element) : Button {
+		$buttonText = '';
+		$image = null;
+
+		if ($element instanceof ShopSubCategory) {
+			$buttonText = TextFormat::BOLD . $element->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . $element->getDescription();
+			$image = ButtonImage::create($element->getImageType()->toInt(), $element->getImageSource());
+		} elseif ($element instanceof ShopItem) {
+			$buyPrice = $element->canBuy() ? TextFormat::GREEN . '$' . $element->getBuyPrice() : TextFormat::DARK_GRAY . 'N/A';
+			$sellPrice = $element->canSell() ? TextFormat::RED . '$' . $element->getSellPrice() : TextFormat::DARK_GRAY . 'N/A';
+			$buttonText = TextFormat::BOLD . $element->getItem()->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . 'Buy: ' . $buyPrice . ' | Sell: ' . $sellPrice;
+			$image = ButtonImage::create($element->getImageType()->toInt(), $element->getImageSource());
+		}
+
+		return Button::create($buttonText, $image);
+	}
+
+	/**
+	 * A reusable method to handle paginated forms.
+	 */
+	private static function sendPaginatedForm(Player $player, array $elements, string $menuName, string $prompt, int $page, callable $callback) : void {
+		$totalElements = count($elements);
+		$totalPages = (int) floor(($totalElements - 1) / self::ITEMS_PER_PAGE);
+
+		$offset = $page * self::ITEMS_PER_PAGE;
+		$visibleElements = array_slice($elements, $offset, self::ITEMS_PER_PAGE);
+
+		$buttons = [];
+		foreach ($visibleElements as $element) {
+			$buttons[] = self::createShopElementButton($element);
+		}
+
+		$navButtons = [];
+		if ($page > 0) {
+			$navButtons[] = Button::create('§l§b« Previous Page', ButtonImage::create(0, 'textures/ui/arrowLeft'))->onClick(function (Player $player) use ($elements, $menuName, $prompt, $page, $callback) : void {
+				self::sendPaginatedForm($player, $elements, $menuName, $prompt, $page - 1, $callback);
+			});
+		}
+
+		if ($page < $totalPages) {
+			$navButtons[] = Button::create('§l§bNext Page »', ButtonImage::create(0, 'textures/ui/arrowRight'))->onClick(function (Player $player) use ($elements, $menuName, $prompt, $page, $callback) : void {
+				self::sendPaginatedForm($player, $elements, $menuName, $prompt, $page + 1, $callback);
+			});
+		}
+
+		$allButtons = array_merge($navButtons, $buttons);
+
+		$player->sendForm(PocketFormHelper::menu(
+			TextFormat::GREEN . ($menuName === '' ? 'Shop' : 'Category: ' . $menuName) . ' (Page ' . ($page + 1) . '/' . ($totalPages + 1) . ')',
+			'Select a ' . $prompt,
+			$allButtons,
+			function (SimpleFormResponse $response) use ($elements, $page, $navButtons, $callback) : void {
+				$player = $response->getPlayer();
+				$selectedId = (int) $response->getSelected()->getId();
+				$navButtonCount = count($navButtons);
+				$elementIndex = $selectedId - $navButtonCount + ($page * self::ITEMS_PER_PAGE);
+
+				if (isset($elements[$elementIndex])) {
+					$callback($player, $elements[$elementIndex]);
+				}
+			}
+		));
 	}
 }

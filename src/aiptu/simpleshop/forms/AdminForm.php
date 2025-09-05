@@ -21,7 +21,6 @@ use aiptu\simpleshop\SimpleShop;
 use aiptu\simpleshop\utils\ImageType;
 use aiptu\simpleshop\utils\ItemSerializer;
 use aiptu\simpleshop\utils\PermissionUtil;
-use pocketmine\item\Item;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use XanderID\PocketForm\custom\CustomFormResponse;
@@ -78,24 +77,22 @@ class AdminForm {
 	 * Sends a form to manage a specific shop category.
 	 */
 	public static function sendCategoryManagementForm(Player $player, ShopCategory $category) : void {
-		$buttons = [];
-		$buttons[] = Button::create(TextFormat::GREEN . 'Add New Sub-Category')->onClick(function (Player $player) use ($category) : void {
-			self::sendAddSubCategoryForm($player, $category);
-		});
-		$buttons[] = Button::create(TextFormat::GREEN . 'Add New Item to Category')->onClick(function (Player $player) use ($category) : void {
-			self::sendAddItemForm($player, $category);
-		});
-		$buttons[] = Button::create(TextFormat::YELLOW . 'Edit Category Properties')->onClick(function (Player $player) use ($category) : void {
-			self::sendEditCategoryForm($player, $category);
-		});
-		$buttons[] = Button::create(TextFormat::RED . 'Remove Category')->onClick(function (Player $player) use ($category) : void {
-			self::sendRemoveCategoryConfirmation($player, $category);
-		});
+		$buttons = [
+			Button::create(TextFormat::GREEN . 'Add New Sub-Category')->onClick(function (Player $player) use ($category) : void {
+				self::sendAddSubCategoryForm($player, $category);
+			}),
+			Button::create(TextFormat::GREEN . 'Add New Item to Category')->onClick(function (Player $player) use ($category) : void {
+				self::sendAddItemForm($player, $category);
+			}),
+			Button::create(TextFormat::YELLOW . 'Edit Category Properties')->onClick(function (Player $player) use ($category) : void {
+				self::sendEditCategoryForm($player, $category);
+			}),
+			Button::create(TextFormat::RED . 'Remove Category')->onClick(function (Player $player) use ($category) : void {
+				self::sendRemoveCategoryConfirmation($player, $category);
+			}),
+		];
 
-		$subCategories = $category->getSubCategories();
-		$items = $category->getItems();
-
-		foreach ($subCategories as $subCategory) {
+		foreach ($category->getSubCategories() as $subCategory) {
 			$buttonText = TextFormat::BOLD . $subCategory->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . 'Manage Sub-Category';
 			$image = ButtonImage::create($subCategory->getImageType()->toInt(), $subCategory->getImageSource());
 			$buttons[] = Button::create($buttonText, $image)->onClick(function (Player $player) use ($subCategory) : void {
@@ -103,18 +100,18 @@ class AdminForm {
 			});
 		}
 
-		foreach ($items as $item) {
+		foreach ($category->getItems() as $item) {
 			$buttonText = TextFormat::BOLD . $item->getItem()->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . 'Manage Item';
 			$image = ButtonImage::create($item->getImageType()->toInt(), $item->getImageSource());
-			$buttons[] = Button::create($buttonText, $image)->onClick(function (Player $player) use ($item) : void {
-				self::sendItemManagementForm($player, $item);
+			$buttons[] = Button::create($buttonText, $image)->onClick(function (Player $player) use ($category, $item) : void {
+				self::sendItemManagementForm($player, $item, $category);
 			});
 		}
 
 		$player->sendForm(
 			SimpleForm::create(
 				TextFormat::DARK_AQUA . 'Manage Category: ' . $category->getName(),
-				'Select an option to manage this category, its sub-categories, or items.',
+				'Select an option to manage this category, its sub-categories, or items.'
 			)->mergeElements($buttons)
 		);
 	}
@@ -123,30 +120,30 @@ class AdminForm {
 	 * Sends a form to manage a specific shop sub-category.
 	 */
 	public static function sendSubCategoryManagementForm(Player $player, ShopSubCategory $subCategory) : void {
-		$buttons = [];
-		$buttons[] = Button::create(TextFormat::GREEN . 'Add New Item to Sub-Category')->onClick(function (Player $player) use ($subCategory) : void {
-			self::sendAddItemForm($player, $subCategory);
-		});
-		$buttons[] = Button::create(TextFormat::YELLOW . 'Edit Sub-Category Properties')->onClick(function (Player $player) use ($subCategory) : void {
-			self::sendEditSubCategoryForm($player, $subCategory);
-		});
-		$buttons[] = Button::create(TextFormat::RED . 'Remove Sub-Category')->onClick(function (Player $player) use ($subCategory) : void {
-			self::sendRemoveSubCategoryConfirmation($player, $subCategory);
-		});
+		$buttons = [
+			Button::create(TextFormat::GREEN . 'Add New Item to Sub-Category')->onClick(function (Player $player) use ($subCategory) : void {
+				self::sendAddItemForm($player, $subCategory);
+			}),
+			Button::create(TextFormat::YELLOW . 'Edit Sub-Category Properties')->onClick(function (Player $player) use ($subCategory) : void {
+				self::sendEditSubCategoryForm($player, $subCategory);
+			}),
+			Button::create(TextFormat::RED . 'Remove Sub-Category')->onClick(function (Player $player) use ($subCategory) : void {
+				self::sendRemoveSubCategoryConfirmation($player, $subCategory);
+			}),
+		];
 
-		$items = $subCategory->getItems();
-		foreach ($items as $item) {
+		foreach ($subCategory->getItems() as $item) {
 			$buttonText = TextFormat::BOLD . $item->getItem()->getName() . TextFormat::RESET . "\n" . TextFormat::GRAY . 'Manage Item';
 			$image = ButtonImage::create($item->getImageType()->toInt(), $item->getImageSource());
-			$buttons[] = Button::create($buttonText, $image)->onClick(function (Player $player) use ($item) : void {
-				self::sendItemManagementForm($player, $item);
+			$buttons[] = Button::create($buttonText, $image)->onClick(function (Player $player) use ($item, $subCategory) : void {
+				self::sendItemManagementForm($player, $item, $subCategory);
 			});
 		}
 
 		$player->sendForm(
 			SimpleForm::create(
 				TextFormat::DARK_AQUA . 'Manage Sub-Category: ' . $subCategory->getName(),
-				'Select an option to manage this sub-category or its items.',
+				'Select an option to manage this sub-category or its items.'
 			)->mergeElements($buttons)
 		);
 	}
@@ -154,18 +151,18 @@ class AdminForm {
 	/**
 	 * Sends a form to manage a specific shop item.
 	 */
-	public static function sendItemManagementForm(Player $player, ShopItem $item) : void {
+	public static function sendItemManagementForm(Player $player, ShopItem $item, AbstractCategory $parentCategory) : void {
 		$player->sendForm(
 			SimpleForm::create(
 				TextFormat::DARK_AQUA . 'Manage Item: ' . $item->getItem()->getName(),
 				'Select an option to manage this item.'
 			)->mergeElements(
 				[
-					Button::create(TextFormat::YELLOW . 'Edit Item Properties')->onClick(function (Player $player) use ($item) : void {
-						self::sendEditItemOptions($player, $item);
+					Button::create(TextFormat::YELLOW . 'Edit Item Properties')->onClick(function (Player $player) use ($item, $parentCategory) : void {
+						self::sendEditItemOptions($player, $item, $parentCategory);
 					}),
-					Button::create(TextFormat::RED . 'Remove Item')->onClick(function (Player $player) use ($item) : void {
-						self::sendRemoveItemConfirmation($player, $item);
+					Button::create(TextFormat::RED . 'Remove Item')->onClick(function (Player $player) use ($item, $parentCategory) : void {
+						self::sendRemoveItemConfirmation($player, $item, $parentCategory);
 					}),
 				]
 			)
@@ -489,28 +486,7 @@ class AdminForm {
 	/**
 	 * Sends a confirmation form to remove an item.
 	 */
-	private static function sendRemoveItemConfirmation(Player $player, ShopItem $item) : void {
-		$parentCategory = null;
-
-		foreach (SimpleShop::getInstance()->getShopManager()->getCategories() as $category) {
-			if ($category->getItem($item->getId()) !== null) {
-				$parentCategory = $category;
-				break;
-			}
-
-			foreach ($category->getSubCategories() as $subCategory) {
-				if ($subCategory->getItem($item->getId()) !== null) {
-					$parentCategory = $subCategory;
-					break 2;
-				}
-			}
-		}
-
-		if ($parentCategory === null) {
-			$player->sendMessage(TextFormat::RED . 'Could not find parent category/sub-category for this item.');
-			return;
-		}
-
+	private static function sendRemoveItemConfirmation(Player $player, ShopItem $item, AbstractCategory $parentCategory) : void {
 		FormHelper::displayModalForm(
 			$player,
 			TextFormat::RED . 'Confirm Removal',
@@ -529,7 +505,7 @@ class AdminForm {
 					}
 				} else {
 					$player->sendMessage(TextFormat::YELLOW . 'Item removal cancelled.');
-					self::sendItemManagementForm($player, $item);
+					self::sendItemManagementForm($player, $item, $parentCategory);
 				}
 			}
 		);
@@ -538,18 +514,18 @@ class AdminForm {
 	/**
 	 * Sends a form to choose how to edit the item.
 	 */
-	public static function sendEditItemOptions(Player $player, ShopItem $shopItem) : void {
+	public static function sendEditItemOptions(Player $player, ShopItem $shopItem, AbstractCategory $parentCategory) : void {
 		$player->sendForm(
 			SimpleForm::create(
 				TextFormat::DARK_AQUA . 'Edit Item: ' . $shopItem->getItem()->getName(),
 				'Choose an editing method for this item.'
 			)->mergeElements(
 				[
-					Button::create('Update Item Data with Held Item')->onClick(function (Player $player) use ($shopItem) : void {
-						self::sendEditItemForm($player, $shopItem, true);
+					Button::create('Update Item Data with Held Item')->onClick(function (Player $player) use ($shopItem, $parentCategory) : void {
+						self::sendEditItemForm($player, $shopItem, true, $parentCategory);
 					}),
-					Button::create('Edit Properties Manually')->onClick(function (Player $player) use ($shopItem) : void {
-						self::sendEditItemForm($player, $shopItem, false);
+					Button::create('Edit Properties Manually')->onClick(function (Player $player) use ($shopItem, $parentCategory) : void {
+						self::sendEditItemForm($player, $shopItem, false, $parentCategory);
 					}),
 				]
 			)
@@ -559,7 +535,7 @@ class AdminForm {
 	/**
 	 * Sends a form to edit an existing shop item.
 	 */
-	public static function sendEditItemForm(Player $player, ShopItem $shopItem, bool $updateNbt) : void {
+	public static function sendEditItemForm(Player $player, ShopItem $shopItem, bool $updateNbt, AbstractCategory $parentCategory) : void {
 		$formElements = [
 			['type' => 'label', 'label' => 'Editing Item ID: ' . $shopItem->getId()],
 		];
@@ -588,7 +564,7 @@ class AdminForm {
 			$player,
 			TextFormat::DARK_AQUA . 'Edit Item: ' . $shopItem->getItem()->getName(),
 			$formElements,
-			function (CustomFormResponse $response) use ($player, $shopItem, $updateNbt) : void {
+			function (CustomFormResponse $response) use ($player, $shopItem, $updateNbt, $parentCategory) : void {
 				[$buyPrice, $canBuy, $sellPrice, $canSell, $imageSrc, $imageTypeIndex] = $response->getValues();
 				$nbt = '';
 
@@ -625,26 +601,6 @@ class AdminForm {
 					$updatedShopItem = ShopItem::fromArray($shopItem->getId(), $itemData);
 				} catch (\RuntimeException $e) {
 					$player->sendMessage(TextFormat::RED . 'Error updating item: ' . $e->getMessage());
-					return;
-				}
-
-				$parentCategory = null;
-				foreach (SimpleShop::getInstance()->getShopManager()->getCategories() as $category) {
-					if ($category->getItem($shopItem->getId()) !== null) {
-						$parentCategory = $category;
-						break;
-					}
-
-					foreach ($category->getSubCategories() as $subCategory) {
-						if ($subCategory->getItem($shopItem->getId()) !== null) {
-							$parentCategory = $subCategory;
-							break 2;
-						}
-					}
-				}
-
-				if ($parentCategory === null) {
-					$player->sendMessage(TextFormat::RED . 'Could not find parent category/sub-category for this item.');
 					return;
 				}
 
