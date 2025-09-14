@@ -19,7 +19,7 @@ jobs:
         id: pharynx
         with:
           additional-assets: |
-            icon.png
+            icon.gif
       - uses: actions/upload-artifact@v4
         with:
           name: SimpleShop.phar
