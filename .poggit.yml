@@ -4,5 +4,5 @@ branches:
 projects:
   SimpleShop:
     path: ""
-    icon: "icon.gif"
+    icon: icon.gif
 ...
