@@ -1,0 +1,15 @@
+{
+    "name": "aiptu/simpleshop",
+    "description": "A powerful and user-friendly shop plugin for PocketMine-MP servers that allows players to buy and sell items through an intuitive form-based interface.",
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "dapigguy/libpiggyeconomy": "^3.0",
+        "paroxity/commando": "^3.2",
+        "pocketmine/pocketmine-mp": "^5.0",
+        "xanderid/pocketform": "^1.0"
+    },
+    "autoload": {
+        "classmap": ["src"]
+    }
+}

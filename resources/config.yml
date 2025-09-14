@@ -1,4 +1,4 @@
 # Economy settings.
 # Possible providers: bedrockeconomy, xp
 economy:
-  provider: BedrockEconomy
+  provider: xp

@@ -3,6 +3,7 @@ main: aiptu\simpleshop\SimpleShop
 version: 1.0.0
 api: [5.30.0]
 author: AIPTU
+softdepend: BedrockEconomy
 permissions:
   simpleshop.category:
     description: Allows usage of all SimpleShop categories.
