@@ -16,15 +16,15 @@ namespace aiptu\simpleshop\forms;
 use Closure;
 use pocketmine\player\Player;
 use RuntimeException;
-use XanderID\PocketForm\custom\CustomForm;
-use XanderID\PocketForm\custom\CustomFormResponse;
-use XanderID\PocketForm\custom\element\Dropdown;
-use XanderID\PocketForm\custom\element\Input;
-use XanderID\PocketForm\custom\element\Slider;
-use XanderID\PocketForm\custom\element\Toggle;
-use XanderID\PocketForm\element\Label;
-use XanderID\PocketForm\modal\ModalForm;
-use XanderID\PocketForm\modal\ModalFormResponse;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\custom\CustomForm;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\custom\CustomFormResponse;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\custom\element\Dropdown;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\custom\element\Input;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\custom\element\Slider;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\custom\element\Toggle;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\element\Label;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\modal\ModalForm;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\XanderID\PocketForm\modal\ModalFormResponse;
 
 /**
  * @no-named-arguments

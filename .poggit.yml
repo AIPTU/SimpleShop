@@ -1,8 +1,1 @@
---- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/AIPTU/SimpleShop
-branches:
-- poggit/master
-projects:
-  SimpleShop:
-    path: ""
-    icon: icon.gif
-...
+{"projects":{"SimpleShop":{"path":".","lint":false}}}

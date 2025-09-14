@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace aiptu\simpleshop\commands;
 
 use aiptu\simpleshop\forms\AdminForm;
-use CortexPE\Commando\BaseCommand;
-use CortexPE\Commando\constraint\InGameRequiredConstraint;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\CortexPE\Commando\BaseCommand;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\CortexPE\Commando\constraint\InGameRequiredConstraint;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;

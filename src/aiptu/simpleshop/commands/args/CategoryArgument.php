@@ -15,7 +15,7 @@ namespace aiptu\simpleshop\commands\args;
 
 use aiptu\simpleshop\shops\ShopCategory;
 use aiptu\simpleshop\SimpleShop;
-use CortexPE\Commando\args\StringEnumArgument;
+use aiptu\simpleshop\libs\_19362d29eb9379f3\CortexPE\Commando\args\StringEnumArgument;
 use pocketmine\command\CommandSender;
 use function array_map;
 
