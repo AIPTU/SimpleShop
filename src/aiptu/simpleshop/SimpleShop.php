@@ -23,8 +23,8 @@ use pocketmine\plugin\DisablePluginException;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
 use Symfony\Component\Filesystem\Path;
-use XanderID\PocketForm\PocketForm;
 use Throwable;
+use XanderID\PocketForm\PocketForm;
 use function class_exists;
 use function is_array;
 
