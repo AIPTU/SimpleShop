@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace aiptu\simpleshop\utils;
 
-use aiptu\simpleshop\libs\_b63bc620e1ce9951\XanderID\PocketForm\simple\element\ButtonImage;
+use aiptu\simpleshop\libs\_d783cd05c2d035c6\XanderID\PocketForm\simple\element\ButtonImage;
 use function array_map;
 
 /**
